@@ -69,6 +69,8 @@ Tick `For install builds only`, only required when making an Archive
 #!/bin/bash
 set -e
 
+COMBINED_NAME="Combined.framework"
+
 # Path to Plugins directory
 PLUGINS_PATH="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Plugins"
 
@@ -76,7 +78,7 @@ PLUGINS_PATH="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Plugins"
 APP_PATH="${TARGET_BUILD_DIR}/${WRAPPER_NAME}"
 
 # Path to destination inside Combined.framework
-COMBINED_FRAMEWORK_PATH="${APP_PATH}/Frameworks/Combined.framework"
+COMBINED_FRAMEWORK_PATH="${APP_PATH}/Frameworks/${COMBINED_NAME}"
 
 # 1. Delete all *.bundle in Plugins
 if [ -d "${PLUGINS_PATH}" ]; then
@@ -88,15 +90,14 @@ else
 fi
 
 # 2. Move top-level *.bundle files from .app to Combined.framework
-echo "Moving top-level .bundle files from .app to Combined.framework..."
+if [ ! -d "${COMBINED_FRAMEWORK_PATH}" ]; then
+    echo "❌ Error: ${COMBINED_NAME} does not exist at ${COMBINED_FRAMEWORK_PATH}"
+    exit 1
+fi
 
-# Create Combined.framework if it doesn't exist
-mkdir -p "${COMBINED_FRAMEWORK_PATH}"
-
-# Move only top-level *.bundle directories (not recursively)
+echo "Moving top-level .bundle files from .app to ${COMBINED_NAME}..."
 find "${APP_PATH}" -maxdepth 1 -name "*.bundle" -type d -print -exec mv {} "${COMBINED_FRAMEWORK_PATH}" \;
-
-echo "Done moving .bundle files to Combined.framework."
+echo "Done moving .bundle files to ${COMBINED_NAME}."
 
 ```
 
