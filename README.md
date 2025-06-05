@@ -108,7 +108,7 @@ echo "Done moving .bundle files to ${COMBINED_NAME}."
 
 ```
 
-### Since Targets depends onto `Cobined` lib to it will look into the `Cobined.framework/` for the bundles
+### Since Targets depends onto `Cobined` lib, so it will look into the `Cobined.framework/` for the bundles
 
 ![alt tag](https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/config1.png?raw=true)
 
