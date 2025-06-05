@@ -1,6 +1,13 @@
 # ios-spm-bundle-issue-fix
 Duplicate bundle issue fix for Plugins/Extensions targets with SwiftPM
 
+### Before & After
+
+<p>
+<img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/before.png?raw=true" style="width:30%;" />
+<img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/after.png?raw=true" style="width:31%;" />
+</p>
+
 ## Use Xcode project sample `BundleSample/BundleSample.xcodeproj`
 
 ### Aggregated dynamic package is needed here
@@ -107,10 +114,8 @@ echo "Done moving .bundle files to ${COMBINED_NAME}."
 
 ![alt tag](https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/config2.png?raw=true)
 
-### Before
 
-![alt tag](https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/before.png?raw=true)
+### References
 
-## After
-
-![alt tag](https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/after.png?raw=true)
+https://forums.swift.org/t/ipa-size-increasing-while-migrating-from-carthage-to-swift-package-manager-in-application-with-multiple-extension-framework-targets/50315
+https://forums.swift.org/t/swiftpm-cant-dynamically-link-resources/70573/4
