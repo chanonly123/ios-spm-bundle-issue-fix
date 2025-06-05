@@ -117,5 +117,5 @@ echo "Done moving .bundle files to ${COMBINED_NAME}."
 
 ### References
 
-https://forums.swift.org/t/ipa-size-increasing-while-migrating-from-carthage-to-swift-package-manager-in-application-with-multiple-extension-framework-targets/50315
-https://forums.swift.org/t/swiftpm-cant-dynamically-link-resources/70573/4
+- [IPA size increasing while Migrating from Carthage to Swift Package Manager in Application with multiple Extension & Framework Targets](https://forums.swift.org/t/ipa-size-increasing-while-migrating-from-carthage-to-swift-package-manager-in-application-with-multiple-extension-framework-targets/50315)
+- [SwiftPM can’t dynamically link resources](https://forums.swift.org/t/swiftpm-cant-dynamically-link-resources/70573/4)
