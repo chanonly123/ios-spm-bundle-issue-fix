@@ -1,29 +1,29 @@
-# ios-spm-bundle-issue-fix
-Duplicate bundle issue fix for Plugins/Extensions targets with SwiftPM
+# 🧩 iOS SwiftPM Bundle Duplication Fix
 
-### Before & After
+Fixes duplicate `.bundle` files in `Plugins` directories when using Swift Package Manager (SPM) with app + extension targets.
 
+### ✅ Before vs After  
 <p>
-<img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/before.png?raw=true" style="width:30%;" />
-<img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/after.png?raw=true" style="width:31%;" />
+  <img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/before.png?raw=true" width="30%" />
+  <img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/after.png?raw=true" width="31%" />
 </p>
 
-## Use Xcode project sample `BundleSample/BundleSample.xcodeproj`
+---
 
-### Aggregated dynamic package is needed here
+## 🛠 Project Setup
 
-```
+Use the sample project: `BundleSample/BundleSample.xcodeproj`
+
+### SPM Setup
+
+**1. Aggregated dynamic library (`Combined`)**
+```swift
+// Combined/Package.swift
 let package = Package(
     name: "Combined",
-    platforms: [
-        .iOS(.v15)
-    ],
+    platforms: [.iOS(.v15)],
     products: [
-        .library(
-            name: "Combined",
-            type: .dynamic,
-            targets: ["Combined"]
-        ),
+        .library(name: "Combined", type: .dynamic, targets: ["Combined"])
     ],
     dependencies: [
         .package(path: "../../MyLib")
@@ -31,91 +31,79 @@ let package = Package(
     targets: [
         .target(
             name: "Combined",
-            dependencies: [
-                .product(
-                    name: "MyLib",
-                    package: "MyLib"
-                )
-            ]
-        ),
+            dependencies: [.product(name: "MyLib", package: "MyLib")]
+        )
     ]
 )
 ```
 
-This Aggregated library dependes on MyLib which is by default static
-
-```
+**2. Dependency library (`MyLib`)**
+```swift
+// MyLib/Package.swift
 let package = Package(
     name: "MyLib",
-    platforms: [
-        .iOS(.v15)
-    ],
+    platforms: [.iOS(.v15)],
     products: [
-        .library(
-            name: "MyLib",
-            targets: ["MyLib"]
-        ),
+        .library(name: "MyLib", targets: ["MyLib"])
     ],
     targets: [
-        .target(
-            name: "MyLib"
-        ),
+        .target(name: "MyLib")
     ]
 )
 ```
-### Xcode configs
 
-App target depends on `Combined` -> Embed without signing
-Extension target depends on `Combined` -> Do not embed
+---
 
-### Create Run script in the app target to delete `Plugins/**/*.bundle` from all extension. And move top level bundle from `BundleSample.app/` to `BundleSample.app/Frameworks/Combine.framework`
+## ⚙️ Xcode Configuration
 
-Tick `For install builds only`, only required when making an Archive
+- **App target** → Depends on `Combined.framework` → *Embed without signing*  
+- **Extension target** → Depends on `Combined.framework` → *Do not embed*
 
-```
+---
+
+## 🧹 Run Script (App Target)
+
+> Cleans up `.bundle` files from `Plugins`, and moves top-level `.bundle` files into `Combined.framework`.
+
+Add this in **Build Phases > Run Script** (Check “For install builds only”):
+
+```bash
 #!/bin/bash
 set -e
 
 COMBINED_NAME="Combined.framework"
-
-# Path to Plugins directory
-PLUGINS_PATH="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Plugins"
-
-# Path to .app bundle
 APP_PATH="${TARGET_BUILD_DIR}/${WRAPPER_NAME}"
-
-# Path to destination inside Combined.framework
+PLUGINS_PATH="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Plugins"
 COMBINED_FRAMEWORK_PATH="${APP_PATH}/Frameworks/${COMBINED_NAME}"
 
-# 1. Delete all *.bundle in Plugins
+# 1. Remove *.bundle from Plugins
 if [ -d "${PLUGINS_PATH}" ]; then
-    echo "Cleaning .bundle directories inside Plugins..."
-    find "${PLUGINS_PATH}" -name "*.bundle" -type d -print -exec rm -rf {} +
-    echo "Done cleaning .bundle files in Plugins."
-else
-    echo "No Plugins directory found at ${PLUGINS_PATH}. Skipping cleanup."
+    echo "Cleaning .bundle files in Plugins..."
+    find "${PLUGINS_PATH}" -name "*.bundle" -type d -exec rm -rf {} +
 fi
 
-# 2. Move top-level *.bundle files from .app to Combined.framework
+# 2. Move *.bundle into Combined.framework
 if [ ! -d "${COMBINED_FRAMEWORK_PATH}" ]; then
-    echo "❌ Error: ${COMBINED_NAME} does not exist at ${COMBINED_FRAMEWORK_PATH}"
+    echo "❌ Error: ${COMBINED_NAME} not found"
     exit 1
 fi
 
-echo "Moving top-level .bundle files from .app to ${COMBINED_NAME}..."
-find "${APP_PATH}" -maxdepth 1 -name "*.bundle" -type d -print -exec mv {} "${COMBINED_FRAMEWORK_PATH}" \;
-echo "Done moving .bundle files to ${COMBINED_NAME}."
-
+echo "Moving top-level .bundle files to ${COMBINED_NAME}..."
+find "${APP_PATH}" -maxdepth 1 -name "*.bundle" -type d -exec mv {} "${COMBINED_FRAMEWORK_PATH}" \;
 ```
 
-### Since Targets depends onto `Cobined` lib, so it will look into the `Cobined.framework/` for the bundles
+---
 
-![alt tag](https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/config1.png?raw=true)
+## ✅ Result
 
-![alt tag](https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/config2.png?raw=true)
+Now all targets refer to bundles inside `Combined.framework`, eliminating duplicates.
 
+<img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/config1.png?raw=true" width="40%" />
+<img src="https://github.com/chanonly123/ios-spm-bundle-issue-fix/blob/main/config2.png?raw=true" width="40%" />
 
-### References
+---
 
-- [IPA size increasing while Migrating from Carthage to Swift Package Manager in Application with multiple Extension & Framework Targets](https://forums.swift.org/t/ipa-size-increasing-while-migrating-from-carthage-to-swift-package-manager-in-application-with-multiple-extension-framework-targets/50315)
+## 🔗 References
+
+- [IPA size increasing while Migrating from Carthage to Swift Package Manager](https://forums.swift.org/t/ipa-size-increasing-while-migrating-from-carthage-to-swift-package-manager-in-application-with-multiple-extension-framework-targets/50315)
 - [SwiftPM can’t dynamically link resources](https://forums.swift.org/t/swiftpm-cant-dynamically-link-resources/70573/4)
